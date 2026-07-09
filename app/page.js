@@ -120,12 +120,27 @@ export default function Home() {
   const reset = () => { setResults(null); setCaption(null); setError(null); setImgBad(false); };
   const selectDemo = d => { setUrl(d.url); setLabels(d.labels); setActiveDemo(d.url); reset(); };
 
+  // Call HuggingFace Inference API directly from the browser.
+  // This avoids Vercel server timeouts and IP-based rate limiting.
+  const HF_API = "https://api-inference.huggingface.co/models";
+  const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN ?? "";
+
+  const hfPost = (model, body) =>
+    fetch(`${HF_API}/${model}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(HF_TOKEN ? { Authorization: `Bearer ${HF_TOKEN}` } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+
   const run = async () => {
     if (!url || !labels.trim()) return;
     setLoading(true); reset();
     const labelArr = labels.split(",").map(l => l.trim()).filter(Boolean).slice(0, 10);
     try {
-      // Fetch image client-side (avoids Vercel server-side CORS/IP blocks)
+      // Fetch image and convert to base64 (browser-side)
       const imgResp = await fetch(url);
       if (!imgResp.ok) throw new Error(`Could not load image (HTTP ${imgResp.status})`);
       const blob = await imgResp.blob();
@@ -136,19 +151,37 @@ export default function Home() {
         reader.readAsDataURL(blob);
       });
 
+      // Call HuggingFace directly — no server hop
       const [cr, capr] = await Promise.allSettled([
-        fetch("/api/classify", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ imageBase64, labels:labelArr }) }).then(r=>r.json()),
-        fetch("/api/caption",  { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ imageBase64 }) }).then(r=>r.json()),
+        hfPost("openai/clip-vit-base-patch32", {
+          inputs: { image: imageBase64 },
+          parameters: { candidate_labels: labelArr },
+        }).then(async r => {
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error ?? `HF API ${r.status}`);
+          return d;
+        }),
+        hfPost("Salesforce/blip-image-captioning-base", {
+          inputs: imageBase64,
+        }).then(async r => {
+          const d = await r.json();
+          if (!r.ok) return { caption: "" };
+          return { caption: Array.isArray(d) ? (d[0]?.generated_text ?? "") : (d.generated_text ?? "") };
+        }),
       ]);
-      if (cr.status==="fulfilled") {
-        if (cr.value.error) throw new Error(cr.value.error);
+
+      if (cr.status === "fulfilled") {
+        if (cr.value?.error) throw new Error(cr.value.error);
         setResults(cr.value);
       } else throw cr.reason;
-      if (capr.status==="fulfilled" && !capr.value.error) setCaption(capr.value.caption);
+      if (capr.status === "fulfilled") setCaption(capr.value?.caption ?? "");
     } catch(e) {
       const msg = String(e?.message ?? e);
-      setError(msg.toLowerCase().includes("load")||msg.includes("503")||msg.toLowerCase().includes("warming")
-        ? "Model warming up on HuggingFace — try again in ~30s." : msg);
+      setError(
+        msg.toLowerCase().includes("loading") || msg.includes("503") || msg.toLowerCase().includes("warming")
+          ? "Model warming up on HuggingFace — try again in ~30s."
+          : msg
+      );
     } finally { setLoading(false); }
   };
 

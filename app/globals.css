@@ -5,37 +5,64 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-  --bg: #ece8de;
-  --text: #1a1a1a;
-  --border: rgba(26, 26, 26, 0.12);
+  --bg:   #ece8de;
+  --ink:  #1a1a1a;
+  --bone: #ece8de;
 }
 
 body {
   background: var(--bg);
-  color: var(--text);
+  color: var(--ink);
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Word slide-up reveal ─────────────────────────────── */
+/* ── Hero word slide-up ───────────────────────────── */
 @keyframes wordReveal {
-  from { transform: translateY(105%); }
+  from { transform: translateY(110%); }
   to   { transform: translateY(0); }
 }
 
 .word-clip {
   display: block;
   overflow: hidden;
-  line-height: 0.92;
-  padding-bottom: 0.06em;
+  line-height: 0.9;
+  padding-bottom: 0.08em;
 }
 
 .word-reveal {
   display: block;
-  animation: wordReveal 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: wordReveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-/* ── Marquee ──────────────────────────────────────────── */
+/* ── Logo mark entrance ───────────────────────────── */
+@keyframes logoIn {
+  0%   { transform: scale(0) rotate(0deg);   opacity: 0; }
+  60%  { transform: scale(1.15) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg);   opacity: 1; }
+}
+
+.logo-mark-enter {
+  animation: logoIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+}
+
+/* ── Squiggle draw-on ─────────────────────────────── */
+@keyframes drawSquiggle {
+  from { stroke-dashoffset: 500; opacity: 0; }
+  to   { stroke-dashoffset: 0;   opacity: 1; }
+}
+
+.squiggle {
+  stroke-dasharray: 500;
+  stroke-dashoffset: 500;
+}
+
+.squiggle.is-drawn {
+  animation: drawSquiggle 1.4s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Marquee ──────────────────────────────────────── */
 @keyframes marquee {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
@@ -46,28 +73,24 @@ body {
   width: max-content;
   animation: marquee 28s linear infinite;
 }
+.marquee-track:hover { animation-play-state: paused; }
 
-.marquee-track:hover {
-  animation-play-state: paused;
-}
-
-/* ── Scroll-reveal sections ───────────────────────────── */
+/* ── Scroll reveal ────────────────────────────────── */
 .reveal {
   opacity: 0;
   transform: translateY(28px);
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
-
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* ── Score bars ───────────────────────────────────────── */
+/* ── Score bars ───────────────────────────────────── */
 .score-bar {
   transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: rgba(26, 26, 26, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: rgba(26,26,26,.2); border-radius: 3px; }

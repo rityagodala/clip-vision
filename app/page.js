@@ -136,7 +136,7 @@ export default function Home() {
       if (capr.status==="fulfilled" && !capr.value.error) setCaption(capr.value.caption);
     } catch(e) {
       const msg = String(e?.message ?? e);
-      setError(msg.toLowerCase().includes("loading")||msg.includes("503")
+      setError(msg.toLowerCase().includes("fetch")||msg.toLowerCase().includes("load")||msg.includes("503")||msg.toLowerCase().includes("warming")
         ? "Model warming up on HuggingFace — try again in ~30s." : msg);
     } finally { setLoading(false); }
   };

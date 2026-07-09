@@ -1,11 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const DEMOS = [
-  { label: "Dog", url: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&q=80", labels: "golden retriever, labrador, poodle, husky, cat, rabbit" },
+  { label: "Dog",      url: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&q=80", labels: "golden retriever, labrador, poodle, husky, cat, rabbit" },
   { label: "Mountain", url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80", labels: "mountain, ocean, desert, forest, city, tundra" },
-  { label: "City", url: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&q=80", labels: "city street, countryside road, beach, forest trail, airport" },
-  { label: "Food", url: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80", labels: "salad, pizza, sushi, burger, pasta, steak" },
+  { label: "City",     url: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&q=80", labels: "city street, countryside road, beach, forest trail, airport" },
+  { label: "Food",     url: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80", labels: "salad, pizza, sushi, burger, pasta, steak" },
+];
+
+const TICKER_ITEMS = [
+  "ZERO-SHOT", "·", "CLIP VISION", "·", "VIT-B/32", "·",
+  "IMAGE UNDERSTANDING", "·", "NO FINE-TUNING", "·",
+  "COSINE SIMILARITY", "·", "OPENAI", "·", "HUGGINGFACE", "·",
 ];
 
 function Spinner() {
@@ -17,18 +23,37 @@ function Spinner() {
   );
 }
 
+/* Wraps each section for scroll-triggered reveal */
+function Reveal({ children, delay = 0, className = "" }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { el.classList.add("is-visible"); obs.disconnect(); } },
+      { threshold: 0.08 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className={`reveal ${className}`} style={{ transitionDelay: `${delay}ms` }}>
+      {children}
+    </div>
+  );
+}
+
 export default function Home() {
-  const [url, setUrl] = useState("");
-  const [labels, setLabels] = useState("dog, cat, mountain, car, person, building");
+  const [url, setUrl]         = useState("");
+  const [labels, setLabels]   = useState("dog, cat, mountain, car, person, building");
   const [results, setResults] = useState(null);
   const [caption, setCaption] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError]     = useState(null);
   const [activeDemo, setActiveDemo] = useState(null);
-  const [imgBad, setImgBad] = useState(false);
+  const [imgBad, setImgBad]   = useState(false);
 
   const reset = () => { setResults(null); setCaption(null); setError(null); setImgBad(false); };
-
   const selectDemo = (d) => { setUrl(d.url); setLabels(d.labels); setActiveDemo(d.url); reset(); };
 
   const run = async () => {
@@ -38,7 +63,7 @@ export default function Home() {
     try {
       const [cr, capr] = await Promise.allSettled([
         fetch("/api/classify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageUrl: url, labels: labelArr }) }).then(r => r.json()),
-        fetch("/api/caption", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageUrl: url }) }).then(r => r.json()),
+        fetch("/api/caption",  { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageUrl: url }) }).then(r => r.json()),
       ]);
       if (cr.status === "fulfilled") {
         if (cr.value.error) throw new Error(cr.value.error);
@@ -47,7 +72,8 @@ export default function Home() {
       if (capr.status === "fulfilled" && !capr.value.error) setCaption(capr.value.caption);
     } catch (e) {
       const msg = String(e?.message ?? e);
-      setError(msg.toLowerCase().includes("loading") || msg.includes("503") ? "Model warming up on HuggingFace — try again in ~30s." : msg);
+      setError(msg.toLowerCase().includes("loading") || msg.includes("503")
+        ? "Model warming up on HuggingFace — try again in ~30s." : msg);
     } finally { setLoading(false); }
   };
 
@@ -56,47 +82,90 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#ece8de] text-[#1a1a1a]">
 
-      {/* Nav */}
+      {/* ── Nav ─────────────────────────────────────────── */}
       <nav className="sticky top-0 z-20 border-b border-[#1a1a1a]/10 bg-[#ece8de]/90 backdrop-blur-sm px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#1a1a1a] flex items-center justify-center text-[11px] font-black text-[#ece8de] tracking-tight">
+            <div className="w-8 h-8 bg-[#1a1a1a] flex items-center justify-center text-[11px] font-black text-[#ece8de]">
               CV
             </div>
-            <span className="font-black text-sm uppercase tracking-[0.1em]">ClipVision</span>
+            <span className="font-black text-sm uppercase tracking-[0.12em]">ClipVision</span>
           </div>
           <a
             href="https://github.com/rityagodala/clip-vision"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[11px] text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors uppercase tracking-[0.15em]"
+            target="_blank" rel="noopener noreferrer"
+            className="text-[11px] text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors uppercase tracking-[0.18em]"
           >
             GitHub →
           </a>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="max-w-3xl mx-auto px-6 pt-16 pb-12 border-b border-[#1a1a1a]/10">
-        <div className="flex items-center gap-2.5 mb-8">
+      {/* ── Hero ─────────────────────────────────────────── */}
+      <section className="max-w-3xl mx-auto px-6 pt-16 pb-10">
+        {/* Live badge */}
+        <div className="flex items-center gap-2.5 mb-10">
           <span className="w-1.5 h-1.5 rounded-full bg-green-700 animate-pulse" />
-          <span className="text-[11px] text-[#1a1a1a]/40 uppercase tracking-[0.18em]">
+          <span className="text-[11px] text-[#1a1a1a]/40 uppercase tracking-[0.2em]">
             Live inference · openai/clip-vit-base-patch32
           </span>
         </div>
-        <h1 className="text-[clamp(3rem,9vw,6rem)] font-black uppercase leading-[0.9] tracking-tight mb-8 text-[#1a1a1a]">
-          Zero-shot<br />image<br />understanding
+
+        {/* Animated title — each word slides up from below */}
+        <h1 className="text-[clamp(3.5rem,10vw,7rem)] font-black uppercase leading-none tracking-tight mb-2">
+          <span className="word-clip">
+            <span className="word-reveal" style={{ animationDelay: "0ms" }}>Zero-shot</span>
+          </span>
+          {/* Zipline-style: inline image embedded inside the text */}
+          <span className="word-clip flex items-center gap-4">
+            <span className="word-reveal flex items-center gap-4" style={{ animationDelay: "140ms" }}>
+              <span>image</span>
+              <span
+                className="inline-block rounded-xl overflow-hidden shrink-0 align-middle"
+                style={{ width: "clamp(3rem,6vw,4.5rem)", height: "clamp(2.5rem,5vw,3.75rem)", animationDelay: "300ms" }}
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200&q=80"
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </span>
+            </span>
+          </span>
+          <span className="word-clip">
+            <span className="word-reveal" style={{ animationDelay: "280ms" }}>understanding</span>
+          </span>
         </h1>
-        <p className="text-sm text-[#1a1a1a]/50 max-w-xs leading-relaxed">
+
+        <p
+          className="text-sm text-[#1a1a1a]/45 max-w-xs leading-relaxed mt-8"
+          style={{ animation: "wordReveal 0.85s 0.5s cubic-bezier(0.16,1,0.3,1) both" }}
+        >
           Paste any image URL and type candidate labels. CLIP scores each label without fine-tuning.
         </p>
       </section>
 
-      {/* App */}
+      {/* ── Marquee ticker ───────────────────────────────── */}
+      <div className="border-y border-[#1a1a1a]/10 py-3 overflow-hidden">
+        <div className="marquee-track">
+          {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+            <span
+              key={i}
+              className={`text-[11px] uppercase tracking-[0.18em] mx-5 shrink-0 ${
+                item === "·" ? "text-[#1a1a1a]/20" : "text-[#1a1a1a]/35"
+              }`}
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── App ──────────────────────────────────────────── */}
       <section className="max-w-3xl mx-auto px-6 pb-24 divide-y divide-[#1a1a1a]/10">
 
         {/* Quick demos */}
-        <div className="py-10">
+        <Reveal className="py-10">
           <p className="text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mb-5">Quick Demos</p>
           <div className="flex flex-wrap gap-2">
             {DEMOS.map(d => (
@@ -113,10 +182,10 @@ export default function Home() {
               </button>
             ))}
           </div>
-        </div>
+        </Reveal>
 
         {/* Inputs */}
-        <div className="py-10 space-y-8">
+        <Reveal className="py-10 space-y-8">
           <div>
             <label className="block text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mb-3">
               Image URL
@@ -132,12 +201,7 @@ export default function Home() {
 
           {url && !imgBad && (
             <div className="overflow-hidden border border-[#1a1a1a]/10 max-h-72">
-              <img
-                src={url}
-                alt="Preview"
-                className="w-full max-h-72 object-cover"
-                onError={() => setImgBad(true)}
-              />
+              <img src={url} alt="Preview" className="w-full max-h-72 object-cover" onError={() => setImgBad(true)} />
             </div>
           )}
           {imgBad && (
@@ -161,21 +225,21 @@ export default function Home() {
           <button
             onClick={run}
             disabled={loading || !url || !labels.trim()}
-            className="w-full py-4 font-black text-sm bg-[#1a1a1a] text-[#ece8de] uppercase tracking-[0.2em] hover:bg-[#2a2a2a] disabled:opacity-25 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2.5"
+            className="w-full py-4 font-black text-sm bg-[#1a1a1a] text-[#ece8de] uppercase tracking-[0.22em] hover:bg-[#2a2a2a] disabled:opacity-25 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2.5"
           >
             {loading ? <><Spinner />Running CLIP…</> : "Run CLIP →"}
           </button>
 
           {error && (
-            <div className="border border-red-300/60 bg-red-50/60 px-4 py-3 text-red-800 text-xs leading-relaxed uppercase tracking-wide">
+            <div className="border border-red-300/60 bg-red-50/60 px-4 py-3 text-red-800 text-xs leading-relaxed">
               ⚠ {error}
             </div>
           )}
-        </div>
+        </Reveal>
 
         {/* Results */}
         {sorted && (
-          <div className="py-10 space-y-10 animate-slide-up">
+          <Reveal className="py-10 space-y-10">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mb-2">Top Prediction</p>
@@ -191,10 +255,10 @@ export default function Home() {
               {sorted.map((r, i) => (
                 <div key={r.label} className="space-y-2">
                   <div className="flex justify-between items-baseline">
-                    <span className={`text-sm capitalize ${i === 0 ? "font-bold text-[#1a1a1a]" : "font-normal text-[#1a1a1a]/45"}`}>
+                    <span className={`text-sm capitalize ${i === 0 ? "font-bold" : "font-normal text-[#1a1a1a]/45"}`}>
                       {r.label}
                     </span>
-                    <span className={`text-xs font-mono tabular-nums ${i === 0 ? "text-[#1a1a1a]" : "text-[#1a1a1a]/35"}`}>
+                    <span className={`text-xs font-mono tabular-nums ${i === 0 ? "" : "text-[#1a1a1a]/35"}`}>
                       {(r.score * 100).toFixed(2)}%
                     </span>
                   </div>
@@ -214,30 +278,30 @@ export default function Home() {
                 <p className="text-sm text-[#1a1a1a]/55 italic leading-relaxed">"{caption}"</p>
               </div>
             )}
-          </div>
+          </Reveal>
         )}
 
         {/* How it works */}
-        <div className="py-10">
+        <Reveal className="py-10">
           <p className="text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mb-8">How It Works</p>
           <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#1a1a1a]/10 border border-[#1a1a1a]/10">
             {[
-              { n: "01", title: "Image Embedding", body: "CLIP's ViT-B/32 encodes your image to a 512-dim vector in a joint embedding space." },
-              { n: "02", title: "Text Embeddings", body: "Each label is encoded by CLIP's text transformer into the same 512-dim space." },
+              { n: "01", title: "Image Embedding",  body: "CLIP's ViT-B/32 encodes your image to a 512-dim vector in a joint embedding space." },
+              { n: "02", title: "Text Embeddings",  body: "Each label is encoded by CLIP's text transformer into the same 512-dim space." },
               { n: "03", title: "Cosine Similarity", body: "Dot-product similarities are softmax-normalized into probabilities across all labels." },
-            ].map(s => (
-              <div key={s.n} className="p-6">
-                <div className="font-mono text-xs text-[#1a1a1a]/30 tracking-[0.15em] mb-4">{s.n}</div>
-                <div className="text-sm font-bold uppercase tracking-tight mb-2">{s.title}</div>
+            ].map((s, i) => (
+              <Reveal key={s.n} delay={i * 80} className="p-6">
+                <div className="font-mono text-xs text-[#1a1a1a]/25 tracking-[0.15em] mb-4">{s.n}</div>
+                <div className="text-sm font-black uppercase tracking-tight mb-2">{s.title}</div>
                 <div className="text-xs text-[#1a1a1a]/45 leading-relaxed">{s.body}</div>
-              </div>
+              </Reveal>
             ))}
           </div>
-        </div>
+        </Reveal>
 
       </section>
 
-      {/* Footer */}
+      {/* ── Footer ───────────────────────────────────────── */}
       <footer className="border-t border-[#1a1a1a]/10 px-6 py-6">
         <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-[11px] text-[#1a1a1a]/30 uppercase tracking-[0.12em]">
@@ -250,8 +314,7 @@ export default function Home() {
             Inspired by{" "}
             <a
               href="https://github.com/Lightning-AI/torchmetrics/pull/3428"
-              target="_blank"
-              rel="noopener noreferrer"
+              target="_blank" rel="noopener noreferrer"
               className="text-[#1a1a1a]/50 hover:text-[#1a1a1a] transition-colors"
             >
               torchmetrics PR #3428

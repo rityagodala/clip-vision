@@ -1,8 +1,6 @@
 import { HfInference } from "@huggingface/inference";
 import { NextResponse } from "next/server";
 
-// Vercel Hobby caps functions at 10s. We abort at 8s so we can
-// always return a proper JSON error before the connection is killed.
 export const maxDuration = 10;
 
 export async function POST(req) {
@@ -10,33 +8,27 @@ export async function POST(req) {
   const tid = setTimeout(() => controller.abort(), 8_000);
 
   try {
-    const { imageUrl, labels } = await req.json();
+    const { imageBase64, mimeType, labels } = await req.json();
 
-    if (!imageUrl || !Array.isArray(labels) || labels.length === 0) {
+    if (!imageBase64 || !Array.isArray(labels) || labels.length === 0) {
       return NextResponse.json(
-        { error: "imageUrl and labels[] are required" },
+        { error: "imageBase64 and labels[] are required" },
         { status: 400 }
       );
     }
 
     const hf = new HfInference(process.env.HF_TOKEN ?? "");
 
-    // Fetch the image server-side (5s budget)
-    const imageResp = await fetch(imageUrl, {
-      signal: AbortSignal.timeout(5_000),
-    });
-    if (!imageResp.ok) {
-      return NextResponse.json(
-        { error: `Cannot fetch image — HTTP ${imageResp.status}` },
-        { status: 400 }
-      );
-    }
-    const imageBlob = await imageResp.blob();
+    // Decode base64 → ArrayBuffer (no server-side URL fetch needed)
+    const binaryStr = atob(imageBase64);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+    const imageBuffer = bytes.buffer;
 
     const results = await hf.zeroShotImageClassification(
       {
         model: "openai/clip-vit-base-patch32",
-        inputs: { image: imageBlob },
+        inputs: { image: imageBuffer },
         parameters: { candidate_labels: labels },
       },
       { signal: controller.signal }

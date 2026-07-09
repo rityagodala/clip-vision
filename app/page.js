@@ -125,9 +125,20 @@ export default function Home() {
     setLoading(true); reset();
     const labelArr = labels.split(",").map(l => l.trim()).filter(Boolean).slice(0, 10);
     try {
+      // Fetch image client-side (avoids Vercel server-side CORS/IP blocks)
+      const imgResp = await fetch(url);
+      if (!imgResp.ok) throw new Error(`Could not load image (HTTP ${imgResp.status})`);
+      const blob = await imgResp.blob();
+      const imageBase64 = await new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = e => res(e.target.result.split(",")[1]);
+        reader.onerror = rej;
+        reader.readAsDataURL(blob);
+      });
+
       const [cr, capr] = await Promise.allSettled([
-        fetch("/api/classify", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ imageUrl:url, labels:labelArr }) }).then(r=>r.json()),
-        fetch("/api/caption",  { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ imageUrl:url }) }).then(r=>r.json()),
+        fetch("/api/classify", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ imageBase64, labels:labelArr }) }).then(r=>r.json()),
+        fetch("/api/caption",  { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ imageBase64 }) }).then(r=>r.json()),
       ]);
       if (cr.status==="fulfilled") {
         if (cr.value.error) throw new Error(cr.value.error);
@@ -136,7 +147,7 @@ export default function Home() {
       if (capr.status==="fulfilled" && !capr.value.error) setCaption(capr.value.caption);
     } catch(e) {
       const msg = String(e?.message ?? e);
-      setError(msg.toLowerCase().includes("fetch")||msg.toLowerCase().includes("load")||msg.includes("503")||msg.toLowerCase().includes("warming")
+      setError(msg.toLowerCase().includes("load")||msg.includes("503")||msg.toLowerCase().includes("warming")
         ? "Model warming up on HuggingFace — try again in ~30s." : msg);
     } finally { setLoading(false); }
   };

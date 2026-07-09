@@ -177,11 +177,13 @@ export default function Home() {
       if (capr.status === "fulfilled") setCaption(capr.value?.caption ?? "");
     } catch(e) {
       const msg = String(e?.message ?? e);
-      setError(
-        msg.toLowerCase().includes("loading") || msg.includes("503") || msg.toLowerCase().includes("warming")
-          ? "Model warming up on HuggingFace — try again in ~30s."
-          : msg
-      );
+      if (msg.toLowerCase().includes("loading") || msg.includes("503") || msg.toLowerCase().includes("warming")) {
+        setError("Model warming up — try again in ~30s.");
+      } else if (msg.toLowerCase().includes("fetch") || msg.toLowerCase().includes("cors") || msg.includes("401") || msg.includes("403")) {
+        setError("NO_TOKEN");
+      } else {
+        setError(msg);
+      }
     } finally { setLoading(false); }
   };
 
@@ -316,8 +318,16 @@ export default function Home() {
           </button>
 
           {error && (
-            <div className="border border-red-300/60 bg-red-50/60 px-4 py-3 text-red-800 text-xs leading-relaxed">
-              ⚠ {error}
+            <div className={`border px-4 py-3 text-xs leading-relaxed uppercase tracking-wide ${error === "NO_TOKEN" ? "border-amber-300/60 bg-amber-50/60 text-amber-900" : "border-red-300/60 bg-red-50/60 text-red-800"}`}>
+              {error === "NO_TOKEN" ? (
+                <span>
+                  ⚠ HuggingFace token required.{" "}
+                  <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" className="underline">Get a free token →</a>
+                  {" "}then add <span className="font-mono bg-black/10 px-1 normal-case">NEXT_PUBLIC_HF_TOKEN</span> to your Vercel project env vars and redeploy.
+                </span>
+              ) : (
+                <span>⚠ {error}</span>
+              )}
             </div>
           )}
         </Reveal>

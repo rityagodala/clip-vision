@@ -54,142 +54,212 @@ export default function Home() {
   const sorted = results ? [...results].sort((a, b) => b.score - a.score) : null;
 
   return (
-    <main className="min-h-screen bg-[#07070e] text-slate-100">
+    <main className="min-h-screen bg-[#ece8de] text-[#1a1a1a]">
+
       {/* Nav */}
-      <nav className="sticky top-0 z-20 border-b border-white/5 backdrop-blur-xl bg-[#07070e]/80 px-5 py-3.5">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-bold">CV</div>
-            <span className="font-semibold tracking-tight">ClipVision</span>
+      <nav className="sticky top-0 z-20 border-b border-[#1a1a1a]/10 bg-[#ece8de]/90 backdrop-blur-sm px-6 py-4">
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-[#1a1a1a] flex items-center justify-center text-[11px] font-black text-[#ece8de] tracking-tight">
+              CV
+            </div>
+            <span className="font-black text-sm uppercase tracking-[0.1em]">ClipVision</span>
           </div>
-          <a href="https://github.com/rityagodala/clip-vision" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-white transition-colors">GitHub →</a>
+          <a
+            href="https://github.com/rityagodala/clip-vision"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] text-[#1a1a1a]/40 hover:text-[#1a1a1a] transition-colors uppercase tracking-[0.15em]"
+          >
+            GitHub →
+          </a>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="max-w-2xl mx-auto px-5 pt-12 pb-8 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs mb-5">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          Live inference · openai/clip-vit-base-patch32
+      <section className="max-w-3xl mx-auto px-6 pt-16 pb-12 border-b border-[#1a1a1a]/10">
+        <div className="flex items-center gap-2.5 mb-8">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-700 animate-pulse" />
+          <span className="text-[11px] text-[#1a1a1a]/40 uppercase tracking-[0.18em]">
+            Live inference · openai/clip-vit-base-patch32
+          </span>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-extrabold mb-3 gradient-text leading-tight pb-1">Zero-shot image understanding</h1>
-        <p className="text-slate-400 max-w-md mx-auto">Paste any image URL and type candidate labels. CLIP scores each label without fine-tuning.</p>
+        <h1 className="text-[clamp(3rem,9vw,6rem)] font-black uppercase leading-[0.9] tracking-tight mb-8 text-[#1a1a1a]">
+          Zero-shot<br />image<br />understanding
+        </h1>
+        <p className="text-sm text-[#1a1a1a]/50 max-w-xs leading-relaxed">
+          Paste any image URL and type candidate labels. CLIP scores each label without fine-tuning.
+        </p>
       </section>
 
       {/* App */}
-      <section className="max-w-2xl mx-auto px-5 pb-20 space-y-4">
-        {/* Demo chips */}
-        <div>
-          <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Quick demos</p>
+      <section className="max-w-3xl mx-auto px-6 pb-24 divide-y divide-[#1a1a1a]/10">
+
+        {/* Quick demos */}
+        <div className="py-10">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mb-5">Quick Demos</p>
           <div className="flex flex-wrap gap-2">
             {DEMOS.map(d => (
-              <button key={d.url} onClick={() => selectDemo(d)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${activeDemo === d.url ? "bg-indigo-600 border-indigo-500 text-white" : "bg-white/[0.03] border-white/10 text-slate-300 hover:bg-white/[0.07]"}`}>
+              <button
+                key={d.url}
+                onClick={() => selectDemo(d)}
+                className={`px-4 py-1.5 text-sm font-semibold border transition-all duration-150 ${
+                  activeDemo === d.url
+                    ? "bg-[#1a1a1a] border-[#1a1a1a] text-[#ece8de]"
+                    : "bg-transparent border-[#1a1a1a]/20 text-[#1a1a1a]/60 hover:border-[#1a1a1a]/60 hover:text-[#1a1a1a]"
+                }`}
+              >
                 {d.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Input card */}
-        <div className="glass rounded-2xl p-5 space-y-4">
+        {/* Inputs */}
+        <div className="py-10 space-y-8">
           <div>
-            <label className="text-[10px] text-slate-400 uppercase tracking-widest mb-1.5 block">Image URL</label>
-            <input type="url" value={url} onChange={e => { setUrl(e.target.value); setActiveDemo(null); reset(); }}
+            <label className="block text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mb-3">
+              Image URL
+            </label>
+            <input
+              type="url"
+              value={url}
+              onChange={e => { setUrl(e.target.value); setActiveDemo(null); reset(); }}
               placeholder="https://..."
-              className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-all" />
+              className="w-full bg-transparent border border-[#1a1a1a]/15 px-4 py-3 text-sm text-[#1a1a1a] placeholder-[#1a1a1a]/25 focus:outline-none focus:border-[#1a1a1a]/50 transition-colors"
+            />
           </div>
 
           {url && !imgBad && (
-            <div className="rounded-xl overflow-hidden bg-white/5 max-h-64">
-              <img src={url} alt="Preview" className="w-full max-h-64 object-cover" onError={() => setImgBad(true)} />
+            <div className="overflow-hidden border border-[#1a1a1a]/10 max-h-72">
+              <img
+                src={url}
+                alt="Preview"
+                className="w-full max-h-72 object-cover"
+                onError={() => setImgBad(true)}
+              />
             </div>
           )}
-          {imgBad && <p className="text-xs text-red-400">⚠ Could not load image preview</p>}
+          {imgBad && (
+            <p className="text-xs text-red-700 uppercase tracking-widest">⚠ Could not load image preview</p>
+          )}
 
           <div>
-            <label className="text-[10px] text-slate-400 uppercase tracking-widest mb-1.5 block">
-              Candidate labels <span className="normal-case text-indigo-400 ml-1">comma-separated, up to 10</span>
+            <label className="block text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mb-3">
+              Candidate Labels{" "}
+              <span className="normal-case text-[#1a1a1a]/30 tracking-normal">comma-separated, up to 10</span>
             </label>
-            <input type="text" value={labels} onChange={e => setLabels(e.target.value)}
+            <input
+              type="text"
+              value={labels}
+              onChange={e => setLabels(e.target.value)}
               placeholder="cat, dog, car, mountain..."
-              className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-all" />
+              className="w-full bg-transparent border border-[#1a1a1a]/15 px-4 py-3 text-sm text-[#1a1a1a] placeholder-[#1a1a1a]/25 focus:outline-none focus:border-[#1a1a1a]/50 transition-colors"
+            />
           </div>
 
-          <button onClick={run} disabled={loading || !url || !labels.trim()}
-            className="w-full py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all glow flex items-center justify-center gap-2">
-            {loading ? <><Spinner /> Running CLIP inference…</> : "Run CLIP →"}
+          <button
+            onClick={run}
+            disabled={loading || !url || !labels.trim()}
+            className="w-full py-4 font-black text-sm bg-[#1a1a1a] text-[#ece8de] uppercase tracking-[0.2em] hover:bg-[#2a2a2a] disabled:opacity-25 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2.5"
+          >
+            {loading ? <><Spinner />Running CLIP…</> : "Run CLIP →"}
           </button>
 
           {error && (
-            <div className="rounded-xl px-4 py-3 bg-red-500/10 border border-red-500/20 text-red-300 text-xs leading-relaxed">⚠ {error}</div>
+            <div className="border border-red-300/60 bg-red-50/60 px-4 py-3 text-red-800 text-xs leading-relaxed uppercase tracking-wide">
+              ⚠ {error}
+            </div>
           )}
         </div>
 
         {/* Results */}
         {sorted && (
-          <div className="glass rounded-2xl p-5 space-y-4 animate-fade-in">
-            <div className="flex items-start justify-between gap-4">
+          <div className="py-10 space-y-10 animate-slide-up">
+            <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-0.5">Top prediction</p>
-                <p className="text-2xl font-bold text-white capitalize">{sorted[0].label}</p>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mb-2">Top Prediction</p>
+                <p className="text-4xl font-black uppercase tracking-tight capitalize leading-none">{sorted[0].label}</p>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-3xl font-black font-mono gradient-text">{(sorted[0].score * 100).toFixed(0)}%</p>
-                <p className="text-[10px] text-slate-500">confidence</p>
+                <p className="text-5xl font-black font-mono leading-none">{(sorted[0].score * 100).toFixed(0)}%</p>
+                <p className="text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mt-1">confidence</p>
               </div>
             </div>
-            <div className="h-px bg-white/5" />
-            <div className="space-y-3">
+
+            <div className="space-y-5">
               {sorted.map((r, i) => (
-                <div key={r.label} className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <span className={`text-sm capitalize ${i === 0 ? "text-white font-medium" : "text-slate-400"}`}>{r.label}</span>
-                    <span className={`text-xs font-mono ${i === 0 ? "text-indigo-300" : "text-slate-500"}`}>{(r.score * 100).toFixed(2)}%</span>
+                <div key={r.label} className="space-y-2">
+                  <div className="flex justify-between items-baseline">
+                    <span className={`text-sm capitalize ${i === 0 ? "font-bold text-[#1a1a1a]" : "font-normal text-[#1a1a1a]/45"}`}>
+                      {r.label}
+                    </span>
+                    <span className={`text-xs font-mono tabular-nums ${i === 0 ? "text-[#1a1a1a]" : "text-[#1a1a1a]/35"}`}>
+                      {(r.score * 100).toFixed(2)}%
+                    </span>
                   </div>
-                  <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full score-bar ${i === 0 ? "bg-gradient-to-r from-indigo-500 to-purple-500" : "bg-white/[0.12]"}`}
-                      style={{ width: `${(r.score * 100).toFixed(2)}%` }} />
+                  <div className="h-px bg-[#1a1a1a]/8 overflow-hidden relative">
+                    <div
+                      className={`absolute inset-y-0 left-0 score-bar ${i === 0 ? "bg-[#1a1a1a]" : "bg-[#1a1a1a]/20"}`}
+                      style={{ width: `${(r.score * 100).toFixed(2)}%` }}
+                    />
                   </div>
                 </div>
               ))}
             </div>
+
             {caption && (
-              <>
-                <div className="h-px bg-white/5" />
-                <div>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">BLIP caption</p>
-                  <p className="text-sm text-slate-200 italic">"{caption}"</p>
-                </div>
-              </>
+              <div className="border-t border-[#1a1a1a]/10 pt-8">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mb-3">BLIP Caption</p>
+                <p className="text-sm text-[#1a1a1a]/55 italic leading-relaxed">"{caption}"</p>
+              </div>
             )}
           </div>
         )}
 
         {/* How it works */}
-        <div className="pt-2">
-          <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-3">How it works</p>
-          <div className="grid sm:grid-cols-3 gap-3">
+        <div className="py-10">
+          <p className="text-[11px] uppercase tracking-[0.18em] text-[#1a1a1a]/40 mb-8">How It Works</p>
+          <div className="grid sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#1a1a1a]/10 border border-[#1a1a1a]/10">
             {[
-              { n: "01", title: "Image embedding", body: "CLIP's ViT-B/32 encodes your image to a 512-dim vector in a joint embedding space." },
-              { n: "02", title: "Text embeddings", body: "Each label is encoded by CLIP's text transformer into the same 512-dim space." },
-              { n: "03", title: "Cosine similarity", body: "Dot-product similarities are softmax-normalized into probabilities across all labels." },
+              { n: "01", title: "Image Embedding", body: "CLIP's ViT-B/32 encodes your image to a 512-dim vector in a joint embedding space." },
+              { n: "02", title: "Text Embeddings", body: "Each label is encoded by CLIP's text transformer into the same 512-dim space." },
+              { n: "03", title: "Cosine Similarity", body: "Dot-product similarities are softmax-normalized into probabilities across all labels." },
             ].map(s => (
-              <div key={s.n} className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
-                <div className="text-indigo-400 font-mono text-xs mb-1.5">{s.n}</div>
-                <div className="text-sm font-semibold mb-1">{s.title}</div>
-                <div className="text-xs text-slate-500 leading-relaxed">{s.body}</div>
+              <div key={s.n} className="p-6">
+                <div className="font-mono text-xs text-[#1a1a1a]/30 tracking-[0.15em] mb-4">{s.n}</div>
+                <div className="text-sm font-bold uppercase tracking-tight mb-2">{s.title}</div>
+                <div className="text-xs text-[#1a1a1a]/45 leading-relaxed">{s.body}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-600 pt-2">
-          Built by <a href="https://github.com/rityagodala" className="text-slate-400 hover:text-white transition-colors">Ritya Godala</a>
-          {" · "}inspired by{" "}
-          <a href="https://github.com/Lightning-AI/torchmetrics/pull/3428" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 transition-colors">torchmetrics PR #3428</a>
-        </p>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-[#1a1a1a]/10 px-6 py-6">
+        <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-[11px] text-[#1a1a1a]/30 uppercase tracking-[0.12em]">
+            Built by{" "}
+            <a href="https://github.com/rityagodala" className="text-[#1a1a1a]/50 hover:text-[#1a1a1a] transition-colors">
+              Ritya Godala
+            </a>
+          </p>
+          <p className="text-[11px] text-[#1a1a1a]/30 uppercase tracking-[0.12em]">
+            Inspired by{" "}
+            <a
+              href="https://github.com/Lightning-AI/torchmetrics/pull/3428"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#1a1a1a]/50 hover:text-[#1a1a1a] transition-colors"
+            >
+              torchmetrics PR #3428
+            </a>
+          </p>
+        </div>
+      </footer>
+
     </main>
   );
 }
